@@ -114,7 +114,10 @@ def test_short_curator_tokens_are_refused(client):
 
 
 def test_drawings_survive_the_round_trip(client):
-    drawing = {"caption": "a cake", "strokes": [{"color": "#111", "width": 5, "points": [1, 2, 3, 4]}]}
+    drawing = {
+        "caption": "a cake",
+        "strokes": [{"color": "#111", "width": 5, "points": [1, 2, 3, 4]}],
+    }
     box = make_box(client, drawings=[drawing])
     assert client.get(f"/api/boxes/{box['id']}").json()["drawings"] == [drawing]
 
@@ -144,7 +147,8 @@ def test_upload_rejects_non_images_whatever_they_claim_to_be(client):
 
 def test_upload_rejects_oversized_files(client):
     huge = b"\x89PNG\r\n\x1a\n" + b"\x00" * (9 * 1024 * 1024)
-    assert client.post("/api/uploads", files={"file": ("big.png", huge, "image/png")}).status_code == 413
+    res = client.post("/api/uploads", files={"file": ("big.png", huge, "image/png")})
+    assert res.status_code == 413
 
 
 def test_upload_paths_cannot_escape_the_directory(client):
