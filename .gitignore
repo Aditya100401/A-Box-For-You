@@ -1,0 +1,32 @@
+# dependencies
+node_modules/
+.venv/
+__pycache__/
+*.py[cod]
+
+# build output
+dist/
+*.tsbuildinfo
+.vite/
+
+# runtime data — boxes, sessions and uploaded photos live on the server's disk
+server/boxes.db
+server/boxes.db-wal
+server/boxes.db-shm
+server/uploads/
+
+# secrets and local config
+.env
+.env.*
+!.env.example
+
+# caches
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+
+# editors, tooling and OS
+.claude/
+.DS_Store
+.idea/
+*.swp
