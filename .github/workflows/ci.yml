@@ -41,6 +41,18 @@ jobs:
     defaults:
       run:
         working-directory: server
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
@@ -53,4 +65,7 @@ jobs:
       - name: Format check
         run: uv run ruff format --check .
       - name: Tests
+        # A throwaway database in a container; the real Neon one is never touched.
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
         run: uv run pytest -q

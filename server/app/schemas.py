@@ -61,7 +61,7 @@ class TeasedGift(BaseModel):
 
 
 class RecipientBox(BaseModel):
-    """The box as she sees it — gift names withheld, only teasers."""
+    """The box as the recipient sees it — gift names withheld, only teasers."""
 
     to: str = ""
     sender: str = ""
@@ -89,6 +89,8 @@ class Session(BaseModel):
     untied: bool = False
     seen: list[str] = Field(default_factory=list)
     pick: Pick | None = None
+    # Empty until the ribbon is pulled; after that, when the box leaves the server.
+    expires_at: str = ""
 
 
 class SessionPatch(BaseModel):
@@ -111,6 +113,14 @@ class BoxSummary(BaseModel):
     created_at: str
     untied: bool
     pick: Pick | None = None
+
+
+class LoggedGift(BaseModel):
+    """What survives a deleted box: the promise you made, not who you made it to."""
+
+    gift: str
+    code: str
+    drawn_at: str
 
 
 class DecodeResult(BaseModel):

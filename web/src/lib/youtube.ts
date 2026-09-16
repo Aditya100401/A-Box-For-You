@@ -92,8 +92,8 @@ export function useYouTubePlayer(videoId: string | null) {
         height: 220,
         playerVars: { rel: 0, playsinline: 1, autoplay: 1 },
         events: {
-          // Creation follows her click on a track, so this usually satisfies
-          // autoplay policy; if the browser refuses, she just presses play.
+          // Creation follows their click on a track, so this usually satisfies
+          // autoplay policy; if the browser refuses, they just press play.
           onReady: () => playerRef.current?.playVideo(),
           onStateChange: (e) => setPlaying(e.data === yt.PlayerState.PLAYING),
         },

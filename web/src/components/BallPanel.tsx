@@ -91,7 +91,7 @@ export function BallPanel({
           </div>
           {preview ? (
             <div className="note">
-              This is a preview, so nothing was locked in. Her real shake happens once, on her link.
+              This is a preview, so nothing was locked in. Their real shake happens once, on their link.
             </div>
           ) : (
             <>

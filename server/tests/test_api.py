@@ -1,22 +1,4 @@
-import os
-import tempfile
-
-import pytest
-
-os.environ["BOX_DB_PATH"] = os.path.join(tempfile.mkdtemp(), "test.db")
-os.environ["BOX_UPLOAD_DIR"] = tempfile.mkdtemp()
-
-from fastapi.testclient import TestClient  # noqa: E402
-
-from app.main import app  # noqa: E402
-
 PNG = b"\x89PNG\r\n\x1a\n" + b"\x00" * 64
-
-
-@pytest.fixture
-def client():
-    with TestClient(app) as c:
-        yield c
 
 
 def make_box(client, **overrides):
@@ -158,3 +140,72 @@ def test_upload_paths_cannot_escape_the_directory(client):
 
 def test_missing_box_is_a_404(client):
     assert client.get("/api/boxes/nope").status_code == 404
+
+
+def test_the_clock_starts_when_the_ribbon_is_pulled(client):
+    """A box packed days early must still be there on the morning it is opened."""
+    box = make_box(client)
+    assert client.get(f"/api/boxes/{box['id']}/session").json()["expires_at"] == ""
+
+    opened = client.patch(f"/api/boxes/{box['id']}/session", json={"untied": True}).json()
+    assert opened["expires_at"] != ""
+
+    # Opening it again must not buy more time than she was promised.
+    again = client.patch(f"/api/boxes/{box['id']}/session", json={"seen": ["cards"]}).json()
+    assert again["expires_at"] == opened["expires_at"]
+
+
+def test_downloading_takes_the_box_off_the_server(client, _stub_r2):
+    box = make_box(client)
+    upload = client.post("/api/uploads", files={"file": ("photo.png", PNG, "image/png")}).json()
+    key = upload["url"].removeprefix("/api/uploads/")
+    client.put(
+        f"/api/boxes/{box['id']}",
+        params={"token": box["curator_token"]},
+        json={"to": "Maya", "photos": [{"url": upload["url"], "caption": "the lake"}]},
+    )
+    assert key in _stub_r2
+
+    assert client.delete(f"/api/boxes/{box['id']}").status_code == 200
+    assert client.get(f"/api/boxes/{box['id']}").status_code == 404
+    assert client.get(f"/api/boxes/{box['id']}/session").status_code == 404
+    assert key not in _stub_r2, "the photo should leave R2 with the box"
+
+
+def test_the_drawn_gift_outlives_the_box_but_the_name_does_not(client):
+    box = make_box(client)
+    token = box["curator_token"]
+    pick = client.post(f"/api/boxes/{box['id']}/shake").json()["pick"]
+
+    client.delete(f"/api/boxes/{box['id']}")
+
+    archive = client.get("/api/curator/archive", params={"token": token}).json()
+    assert [a["gift"] for a in archive] == [pick["name"]]
+    assert archive[0]["code"] == pick["code"]
+    # Nothing about the recipient survives.
+    assert "Maya" not in client.get("/api/curator/archive", params={"token": token}).text
+    assert client.get("/api/curator/boxes", params={"token": token}).json() == []
+
+
+def test_an_expired_box_is_swept_up_on_the_next_visit(client):
+    from app.db import BOXES, connect
+
+    box = make_box(client)
+    client.patch(f"/api/boxes/{box['id']}/session", json={"untied": True})
+    with connect() as conn:
+        conn.execute(
+            f"UPDATE {BOXES} SET expires_at = now() - interval '1 minute' WHERE id = %s",
+            (box["id"],),
+        )
+
+    # Someone else's request is enough to sweep it; no scheduler involved.
+    other = make_box(client)
+    client.get(f"/api/boxes/{other['id']}")
+    assert client.get(f"/api/boxes/{box['id']}").status_code == 404
+
+
+def test_a_box_nobody_opens_is_kept_for_now(client):
+    box = make_box(client)
+    other = make_box(client)
+    client.get(f"/api/boxes/{other['id']}")
+    assert client.get(f"/api/boxes/{box['id']}").status_code == 200
