@@ -140,7 +140,7 @@ export function Curator() {
           </div>
           <div className="grid-fields">
             <label className="field">
-              <span>HER NAME</span>
+              <span>THEIR NAME</span>
               <input
                 className="input"
                 value={content.to}
@@ -158,7 +158,7 @@ export function Curator() {
               />
             </label>
             <label className="field">
-              <span>AGE SHE'S TURNING</span>
+              <span>THE AGE THEY'RE TURNING</span>
               <input
                 className="input"
                 type="number"
@@ -352,14 +352,14 @@ export function Curator() {
               value={content.tape_label}
               onChange={(e) => patch({ tape_label: e.target.value })}
               placeholder={`Label on the tape — defaults to SIDE A — FOR ${
-                content.to.toUpperCase() || 'HER'
+                content.to.toUpperCase() || 'YOU'
               }`}
             />
             <div style={{ display: 'flex', justifyContent: 'center', padding: '6px 0 2px' }}>
               <Cassette
                 width={220}
                 styleId={content.tape_style}
-                label={content.tape_label || `SIDE A — FOR ${content.to.toUpperCase() || 'HER'}`}
+                label={content.tape_label || `SIDE A — FOR ${content.to.toUpperCase() || 'YOU'}`}
                 subtitle={`${age} songs, ${age} years`}
               />
             </div>
@@ -394,7 +394,7 @@ export function Curator() {
                   className="input"
                   value={track.why}
                   onChange={(e) => setTrack(i, { why: e.target.value })}
-                  placeholder="Why this song is hers…"
+                  placeholder="Why this song is theirs…"
                 />
               </div>
             </div>
@@ -490,7 +490,7 @@ export function Curator() {
         <section className="panel">
           <div className="section-head">
             <span className="section-head__no">06</span>
-            <span className="section-head__title">Draw her something</span>
+            <span className="section-head__title">Draw them something</span>
           </div>
           <div className="note">
             A blank page and nothing to live up to. Each drawing travels in the box on its own.
@@ -542,8 +542,8 @@ export function Curator() {
             <span className="section-head__title">The 8-ball gift list</span>
           </div>
           <div className="note">
-            Every gift you'd happily buy. She shakes once, fate decides, and you get told which one.
-            Only the teasers ever reach her browser.
+            Every gift you'd happily buy. They shake once, fate decides, and you get told which one.
+            Only the teasers ever reach their browser.
           </div>
           {content.gifts.map((gift, i) => (
             <div className="row" key={i}>
@@ -577,7 +577,7 @@ export function Curator() {
                   gifts[i] = { ...gifts[i], hint: e.target.value }
                   patch({ gifts })
                 }}
-                placeholder="Teaser she sees"
+                placeholder="Teaser they see"
               />
               <button
                 className="btn btn--icon"
@@ -621,10 +621,10 @@ export function Curator() {
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
             <button className="btn btn--ghost btn--small" onClick={preview} disabled={busy}>
-              Preview as her
+              Preview as them
             </button>
             <button className="btn btn--small" onClick={makeLink} disabled={busy}>
-              {busy ? 'Saving…' : boxId ? 'Update her box' : 'Get her link'}
+              {busy ? 'Saving…' : boxId ? 'Update their box' : 'Get their link'}
             </button>
           </div>
         </div>

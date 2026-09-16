@@ -4,7 +4,7 @@ import { api } from '../lib/api'
 
 export function Reveal() {
   const { id } = useParams<{ id: string }>()
-  const [who, setWho] = useState('She')
+  const [who, setWho] = useState('They')
   const [gift, setGift] = useState<string | null>(null)
   const [error, setError] = useState('')
 
@@ -12,9 +12,9 @@ export function Reveal() {
     if (!id) return
     Promise.all([api.getBox(id), api.getSession(id)])
       .then(([box, session]) => {
-        setWho(box.to || 'She')
+        setWho(box.to || 'They')
         if (session.pick) setGift(session.pick.name)
-        else setError('She hasn’t shaken the ball yet.')
+        else setError('They haven’t shaken the ball yet.')
       })
       .catch((err) => setError(err instanceof Error ? err.message : 'Nothing to reveal.'))
   }, [id])

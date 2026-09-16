@@ -11,11 +11,13 @@ import { Flower } from '../components/Flower'
 import { GiftBoxArt, Petals } from '../components/GiftBoxArt'
 import { TapePanel } from '../components/TapePanel'
 import { api, type Gift, type Pick, type RecipientBox, type Session } from '../lib/api'
+import { buildKeepsake, downloadBlob } from '../lib/keepsake'
 import { curatorToken } from '../lib/storage'
+import { ordinal } from '../lib/ordinal'
 
 type Phase = 'closed' | 'untying' | 'room'
 
-const EMPTY_SESSION: Session = { untied: false, seen: [], pick: null }
+const EMPTY_SESSION: Session = { untied: false, seen: [], pick: null, expires_at: '' }
 
 const PANEL_LABELS: Record<string, string> = {
   cards: 'Postcards',
@@ -39,6 +41,15 @@ export function Box() {
   const [panel, setPanel] = useState<string | null>(null)
   const [card, setCard] = useState(0)
   const [error, setError] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [kept, setKept] = useState(false)
+  const [confirming, setConfirming] = useState(false)
+  const [now, setNow] = useState(() => Date.now())
+
+  useEffect(() => {
+    const tick = setInterval(() => setNow(Date.now()), 30_000)
+    return () => clearInterval(tick)
+  }, [])
 
   useEffect(() => {
     if (!id) return
@@ -46,7 +57,7 @@ export function Box() {
     const load = async () => {
       if (preview) {
         // The curator owns this box, so the preview can show real gift names —
-        // but it never touches the stored session, or her one shake would be spent.
+        // but it never touches the stored session, or their one shake would be spent.
         const full = await api.getFullBox(id, curatorToken())
         if (!live) return
         setSecretGifts(full.gifts.filter((g) => g.name))
@@ -127,6 +138,44 @@ export function Box() {
     setSession(await api.shake(id))
   }
 
+  const allOpened =
+    items.length > 0 && items.every((k) => session.seen.includes(k)) &&
+    (!box?.letter || session.seen.includes('letter'))
+
+  const hoursLeft = session.expires_at
+    ? Math.max(0, Math.round((new Date(session.expires_at).getTime() - now) / 3_600_000))
+    : null
+
+  async function keepForever() {
+    if (!box || !id) return
+    setSaving(true)
+    setError('')
+    try {
+      const blob = await buildKeepsake(box, session.pick)
+      downloadBlob(blob, `a-box-for-${(box.to || 'you').toLowerCase().replace(/\s+/g, '-')}.html`)
+      if (!preview) await api.forget(id)
+      setKept(true)
+      setConfirming(false)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'The box could not be saved.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (kept) {
+    return (
+      <div className="stage fade">
+        <div className="eyebrow">Saved to your device</div>
+        <h1 className="display stage__title">It's yours now.</h1>
+        <p className="note" style={{ maxWidth: '46ch' }}>
+          The file is in your downloads — open it any time, with or without the internet. The box
+          has been wiped from the server, so this link won't open again.
+        </p>
+      </div>
+    )
+  }
+
   if (error) {
     return (
       <div className="stage">
@@ -186,7 +235,7 @@ export function Box() {
           <div className="room__head">
             <div className="eyebrow">{deliveryLine}</div>
             <h1 className="display room__title">
-              {box.age ? `Happy ${box.age}th, ${to}` : `Happy birthday, ${to}`}
+              {box.age ? `Happy ${ordinal(box.age)}, ${to}` : `Happy birthday, ${to}`}
             </h1>
             <div style={{ font: '400 15px/1.6 var(--sans)', color: 'oklch(0.45 0.02 60)' }}>
               Take them out one at a time.{' '}
@@ -195,6 +244,64 @@ export function Box() {
                 : 'Nothing has been unwrapped yet.'}
             </div>
           </div>
+
+          {!preview && (
+            <div className="keepbar">
+              <div>
+                <div className="eyebrow">
+                  {hoursLeft === null
+                    ? 'This box is waiting on a server'
+                    : hoursLeft > 0
+                      ? `About ${hoursLeft} ${hoursLeft === 1 ? 'hour' : 'hours'} left`
+                      : 'Any moment now'}
+                </div>
+                <div className="note keepbar__note">
+                  {allOpened
+                    ? 'Save it and it becomes a file on your device — yours for good.'
+                    : 'Open everything, then save it to keep it forever. Otherwise it is wiped in 24 hours.'}
+                </div>
+              </div>
+              <button
+                className="btn btn--small"
+                disabled={!allOpened || saving}
+                onClick={() => setConfirming(true)}
+              >
+                {saving ? 'Packing it up…' : 'Download the box'}
+              </button>
+            </div>
+          )}
+
+          {confirming && (
+            <div className="scrim" onClick={() => setConfirming(false)}>
+              <div className="sheet" style={{ maxWidth: 460 }} onClick={(e) => e.stopPropagation()}>
+                <div className="sheet__bar">
+                  <span className="eyebrow">One thing first</span>
+                </div>
+                <div className="sheet__body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <div className="serif" style={{ fontSize: 22, lineHeight: 1.3 }}>
+                    Saving this closes the link.
+                  </div>
+                  <div className="note">
+                    You'll get a file holding everything — the cards, the photographs, the
+                    drawings, the letter. The copy on the server is deleted, so this link stops
+                    working everywhere, including your other devices.
+                  </div>
+                  <div className="row">
+                    <button className="btn btn--small" onClick={keepForever} disabled={saving}>
+                      {saving ? 'Packing it up…' : 'Save it and close the link'}
+                    </button>
+                    <button
+                      className="btn btn--ghost btn--small"
+                      onClick={() => setConfirming(false)}
+                    >
+                      Not yet
+                    </button>
+                  </div>
+                  {error && <div className="error">{error}</div>}
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="tiles">
             {cards.length > 0 && (

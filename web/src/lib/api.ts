@@ -31,7 +31,14 @@ export type BoxContent = {
 export type RecipientBox = Omit<BoxContent, 'gifts'> & { gifts: { hint: string }[] }
 
 export type Pick = { index: number; name: string; code: string; picked_at: string }
-export type Session = { untied: boolean; seen: string[]; pick: Pick | null }
+export type Session = {
+  untied: boolean
+  seen: string[]
+  pick: Pick | null
+  /** Empty until the ribbon is pulled; then when the box leaves the server. */
+  expires_at: string
+}
+export type LoggedGift = { gift: string; code: string; drawn_at: string }
 export type CreatedBox = { id: string; curator_token: string }
 export type BoxSummary = {
   id: string
@@ -77,6 +84,11 @@ export const api = {
     call<Session>(`/boxes/${id}/session`, { method: 'PATCH', body: JSON.stringify(patch) }),
 
   shake: (id: string) => call<Session>(`/boxes/${id}/shake`, { method: 'POST' }),
+
+  forget: (id: string) => call<{ forgotten: boolean }>(`/boxes/${id}`, { method: 'DELETE' }),
+
+  archive: (token: string) =>
+    call<LoggedGift[]>(`/curator/archive?token=${encodeURIComponent(token)}`),
 
   history: (token: string) =>
     call<BoxSummary[]>(`/curator/boxes?token=${encodeURIComponent(token)}`),

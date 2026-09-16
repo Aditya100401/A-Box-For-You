@@ -35,7 +35,7 @@ export function Log() {
             Nothing packed yet.
           </div>
           <div className="note">
-            When you send a box, it shows up here — along with whatever the 8-ball gave her.
+            When you send a box, it shows up here — along with whatever the 8-ball gave them.
           </div>
           <Link to="/make" className="btn" style={{ alignSelf: 'flex-start', borderBottom: 'none' }}>
             Start packing →
@@ -65,7 +65,7 @@ export function Log() {
                   <div className="note">Ball not shaken</div>
                 )}
                 <Link to={`/b/${box.id}`} className="note" style={{ display: 'inline-block', marginTop: 6 }}>
-                  open her link
+                  open their link
                 </Link>
               </div>
             </div>

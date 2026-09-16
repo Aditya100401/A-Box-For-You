@@ -14,17 +14,17 @@ const STEPS = [
   {
     no: '02',
     title: 'Send the link',
-    body: 'One short link, hers alone. Gift names never travel to her browser — only the teasers.',
+    body: 'One short link, theirs alone. Gift names never travel to their browser — only the teasers.',
   },
   {
     no: '03',
-    title: 'She unties it',
-    body: 'The ribbon comes undone, petals fall, the tape plays. Laptop, then phone — it resumes where she left off.',
+    title: 'They untie it',
+    body: 'The ribbon comes undone, petals fall, the tape plays. Laptop, then phone — it resumes where they left off.',
   },
   {
     no: '04',
     title: 'You get the answer',
-    body: 'One shake, locked forever. It lands in your log, and she can send the codeword too.',
+    body: 'One shake, locked forever. It lands in your log, and they can send the codeword too.',
   },
 ]
 
@@ -94,7 +94,7 @@ export function Home() {
         </div>
 
         <div className="panel" style={{ marginTop: 56, maxWidth: 520 }}>
-          <div className="eyebrow">Did she send you a codeword?</div>
+          <div className="eyebrow">Did they send you a codeword?</div>
           <div className="row">
             <input
               className="input"

@@ -1441,7 +1441,7 @@ a:hover {
   pointer-events: none;
 }
 
-/* ---------- doodles as she sees them ---------- */
+/* ---------- doodles as they see them ---------- */
 
 @keyframes inkOn {
   to {
@@ -1481,4 +1481,23 @@ a:hover {
 
 .tile__doodle .doodle {
   width: 150px;
+}
+
+/* ---------- keep-it-forever bar ---------- */
+
+.keepbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--paper);
+  border: 1px solid oklch(0.86 0.04 20);
+  padding: 16px 20px;
+  margin-bottom: 28px;
+}
+
+.keepbar__note {
+  margin-top: 4px;
+  max-width: 56ch;
 }
