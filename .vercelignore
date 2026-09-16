@@ -1,0 +1,9 @@
+# Nothing here belongs in a deployment bundle.
+**/node_modules
+**/.venv
+**/__pycache__
+web/dist
+server/uploads
+server/*.db
+server/tests
+.github

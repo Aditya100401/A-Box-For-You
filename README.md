@@ -72,6 +72,27 @@ cd web && npx tsc --noEmit && npm run build
 
 CI runs all of the above on every push and pull request.
 
+## Deploying
+
+Both halves ship as one Vercel project using [Services](https://vercel.com/docs/services),
+so they share a domain and there is no CORS to configure. `vercel.json` declares
+them:
+
+- `web/` — the Vite build, with an `index.html` fallback so client-side routes
+  like `/b/abc123` resolve. Routing into a service is final on Vercel, so without
+  that fallback every deep link 404s.
+- `server/` — FastAPI, entered at `app.main:app`. Services receive the original
+  request path, so the `/api/...` routes need no prefix rewriting.
+
+Set these in the Vercel project's environment variables, for Production and
+Preview both: `DATABASE_URL`, `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`,
+`R2_SECRET_ACCESS_KEY`, `R2_BUCKET`. They are the same names as
+`server/.env.example`.
+
+Vercel's Git integration deploys `main` to production and every other branch to
+a preview URL. GitHub Actions only runs the checks — the deploy credentials live
+in Vercel, so there is one copy of each secret rather than two.
+
 ## Layout
 
 ```
